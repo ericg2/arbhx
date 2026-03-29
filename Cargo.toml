@@ -1,0 +1,31 @@
+[package]
+name = "simple-vfs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1.89"
+bytes = "1.11.1"
+tokio = { version = "1.50.0", features = ["full"] }
+uuid = { version = "1.23.0", features = ["v4"] }
+chrono = { version = "0.4.44", features = ["serde"] }
+serde = { version = "1.0.228" }
+tokio-util = { version = "0.7", features = ["compat"] }
+async-walkdir = "2.1.0"
+opendal = { version = "0.55.0", optional = true, features = ["services-ftp", "services-b2", "services-swift", "services-azblob", "services-azdls", "services-cos", "services-fs", "services-dropbox", "services-gdrive", "services-gcs", "services-ghac", "services-http", "services-ipmfs", "services-memory", "services-obs", "services-onedrive", "services-oss", "services-s3", "services-webdav", "services-webhdfs", "services-azfile", "layers-throttle", "services-yandex-disk"] }
+futures-lite = { version = "2.6.1" }
+serde-aux = "4.7.0"
+serde_derive = "1.0.228"
+serde_with = "3.15.1"
+derive_setters = "0.1.9"
+bytesize = "2.3.1"
+ignore = "0.4.25"
+dashmap = "6.1.0"
+sysinfo = "0.38.4"
+filetime = "0.2.27"
+
+[features]
+default = []
+opendal = ["dep:opendal"]
+blocking = []
+
