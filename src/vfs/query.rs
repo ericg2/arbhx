@@ -22,10 +22,10 @@ impl DataQuery {
         self.query
     }
 
-    async fn size(&self) -> io::Result<Option<u64>> {
+    pub async fn size(&self) -> io::Result<Option<u64>> {
         self.query.clone().size().await
     }
-    async fn stream(&self) -> io::Result<Pin<Box<FileStream>>> {
+    pub async fn stream(&self) -> io::Result<Pin<Box<FileStream>>> {
         let be = self.be.clone();
         let ret = self
             .query

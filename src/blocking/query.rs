@@ -20,10 +20,11 @@ impl DataQuery {
         Self { rt, be, query }
     }
 
-    fn size(&self) -> io::Result<Option<u64>> {
+    pub fn size(&self) -> io::Result<Option<u64>> {
         self.rt.block_on(self.query.clone().size())
     }
-    fn stream(&self) -> io::Result<Box<FileIterator>> {
+
+    pub fn stream(&self) -> io::Result<Box<FileIterator>> {
         let be = self.be.clone();
         let stream = self.rt.block_on(self.query.clone().stream())?;
         let compat = StreamCompat::new(self.rt.clone(), be, stream);
