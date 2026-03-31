@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
@@ -26,5 +27,9 @@ impl RemoteConfig for B2Config {
         map.insert(BUCKET_NAME.to_string(), self.bucket);
         map.insert(BUCKET_ID.to_string(), self.bucket_id);
         return map;
+    }
+
+    fn scheme(&self) -> Scheme {
+        Scheme::B2
     }
 }

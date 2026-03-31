@@ -1,21 +1,22 @@
-use crate::backend::{UsageStat, VfsBackend, VfsReader, VfsWriter};
-use crate::file::DataFile;
-use crate::filters::FilterOptions;
-use crate::local::handle::LocalHandle;
+use crate::backend::{
+    DataAppend, DataFull, DataRead, DataVfs, SizedQuery, UsageStat, VfsFull, VfsReader, VfsWriter,
+};
+use crate::local::config::LocalConfig;
 use crate::local::query::LocalQuery;
+use crate::local::reader::LocalReader;
 use crate::local::writer::LocalWriter;
-use crate::meta::ExtMetadata;
-use crate::query::DataQuery;
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
-use filetime::{FileTime, set_symlink_file_times};
-use std::fmt::{Debug, Formatter};
+use filetime::{set_symlink_file_times, FileTime};
+use std::fmt::Debug;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use sysinfo::Disks;
 use tokio::fs;
 use uuid::Uuid;
+use crate::{ExtMetadata, FilterOptions};
+use crate::vfs::DataInner;
 
 #[derive(Debug)]
 pub struct LocalBackend {
@@ -26,6 +27,13 @@ pub struct LocalBackend {
 impl LocalBackend {
     fn join_force(&self, p: &Path) -> PathBuf {
         crate::join_force(&self.path, p)
+    }
+
+    pub fn new(config: LocalConfig) -> std::io::Result<Self> {
+        Ok(Self {
+            id: Uuid::new_v4(),
+            path: config.path
+        })
     }
 
     pub(crate) fn get_relative(path: &Path, abs: &Path) -> PathBuf {
@@ -60,10 +68,25 @@ impl LocalBackend {
     }
 }
 
-#[async_trait]
-impl VfsReader for LocalBackend {
+impl DataVfs for LocalBackend {
     fn get_id(&self) -> Uuid {
         self.id
+    }
+
+    fn to_inner(self) -> DataInner {
+        let ret = Arc::new(self);
+        DataInner {
+            reader: Some(ret.clone()),
+            writer: Some(ret.clone()),
+            full: Some(ret.clone()),
+        }
+    }
+}
+
+#[async_trait]
+impl VfsReader for LocalBackend {
+    fn realpath(&self, item: &Path) -> PathBuf {
+        self.join_force(item)
     }
 
     async fn get_usage(&self) -> Option<std::io::Result<UsageStat>> {
@@ -84,6 +107,10 @@ impl VfsReader for LocalBackend {
         Some(ret)
     }
 
+    async fn open_read(&self, item: &Path) -> std::io::Result<Box<dyn DataRead>> {
+        LocalReader::read_file(self.join_force(item)).await
+    }
+
     async fn get_metadata(&self, item: &Path) -> std::io::Result<Option<ExtMetadata>> {
         let path = self.join_force(item);
         self.raw_metadata(&path).await
@@ -95,27 +122,10 @@ impl VfsReader for LocalBackend {
         opts: Option<FilterOptions>,
         recursive: bool,
         include_root: bool,
-    ) -> std::io::Result<Arc<dyn DataQuery>> {
+    ) -> std::io::Result<Arc<dyn SizedQuery>> {
         let path = self.join_force(item);
         let ret = LocalQuery::new(&self.path, &path, opts, recursive, include_root)?;
         Ok(Arc::new(ret))
-    }
-
-    async fn realpath(&self, item: &Path) -> PathBuf {
-        self.join_force(item)
-    }
-
-    async fn get_existing(&self, item: &Path) -> std::io::Result<Option<DataFile>> {
-        let path = self.join_force(item);
-        match self.raw_metadata(&path).await? {
-            Some(meta) => {
-                let handle =
-                    LocalHandle::new(self.path.to_owned(), item.to_path_buf(), meta.is_dir);
-                let ret = DataFile::new(meta, Arc::new(handle), true);
-                Ok(Some(ret))
-            }
-            None => Ok(None),
-        }
     }
 }
 
@@ -165,7 +175,19 @@ impl VfsWriter for LocalBackend {
         fs::copy(&p_old, &p_new).await?;
         Ok(())
     }
+
+    async fn open_append(
+        &self,
+        item: &Path,
+        truncate: bool,
+    ) -> std::io::Result<Box<dyn DataAppend>> {
+        LocalWriter::sequential(item, truncate).await
+    }
 }
 
 #[async_trait]
-impl VfsBackend for LocalBackend {}
+impl VfsFull for LocalBackend {
+    async fn open_full(&self, item: &Path) -> std::io::Result<Box<dyn DataFull>> {
+        LocalWriter::full(item).await
+    }
+}

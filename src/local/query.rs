@@ -1,17 +1,13 @@
-use crate::backend::DataIgnore;
-use crate::file::DataFile;
-use crate::filters::FilterOptions;
-use crate::local::handle::LocalHandle;
-use crate::meta::ExtMetadata;
-use crate::query::{DataQuery, DataStream};
-use crate::sort::SimpleIgnore;
+use crate::backend::{DataIgnore, MetaStream, SizedQuery};
+use crate::util::SimpleIgnore;
 use async_trait::async_trait;
 use async_walkdir::{DirEntry, Filtering, WalkDir};
-use futures_lite::{StreamExt};
+use futures_lite::StreamExt;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::pin::{pin, Pin};
+use std::pin::Pin;
 use std::sync::Arc;
+use crate::{ExtMetadata, FilterOptions};
 
 pub struct LocalQuery {
     pub(crate) abs: PathBuf,
@@ -80,10 +76,10 @@ impl LocalQuery {
     async fn map_entry(
         abs: PathBuf,
         entry: async_walkdir::Result<DirEntry>,
-    ) -> io::Result<DataFile> {
+    ) -> io::Result<ExtMetadata> {
         let entry = entry?;
         let meta = entry.metadata().await?;
-        let ext = ExtMetadata {
+        Ok(ExtMetadata {
             path: entry.path(),
             is_dir: meta.is_dir(),
             mtime: meta.modified().ok().map(|x| x.into()),
@@ -91,13 +87,10 @@ impl LocalQuery {
             ctime: meta.created().ok().map(|x| x.into()),
             size: meta.len(),
             ..Default::default()
-        };
-        let handle = LocalHandle::new(abs.to_path_buf(), entry.path().to_path_buf(), meta.is_dir());
-        let ret = DataFile::new(ext, Arc::new(handle), true);
-        Ok(ret)
+        })
     }
 
-    pub(crate) async fn build(self: Arc<Self>) -> Pin<Box<dyn DataStream>> {
+    pub(crate) async fn build(self: Arc<Self>) -> Pin<Box<MetaStream>> {
         let this = self.clone();
         let abs = self.abs.clone();
         let ret = WalkDir::new(&self.path)
@@ -112,14 +105,13 @@ impl LocalQuery {
 }
 
 #[async_trait]
-impl DataQuery for LocalQuery {
+impl SizedQuery for LocalQuery {
     async fn size(self: Arc<Self>) -> io::Result<Option<u64>> {
         let mut size = 0;
         let mut walk = self.build().await;
         while let Some(item) = walk.next().await {
             match item {
-                Ok(entry) => {
-                    let meta = entry.metadata();
+                Ok(meta) => {
                     if meta.is_dir {
                         size += 0
                     } else {
@@ -131,16 +123,8 @@ impl DataQuery for LocalQuery {
         }
         Ok(Some(size))
     }
-
-    async fn options(&self) -> FilterOptions {
-        self.opts.clone()
-    }
-
-    async fn get_iter(self: Arc<Self>) -> io::Result<Pin<Box<dyn DataStream>>> {
+    
+    async fn stream(self: Arc<Self>) -> io::Result<Pin<Box<MetaStream>>> {
         Ok(self.build().await)
-    }
-
-    async fn path(&self) -> &Path {
-        &self.path
     }
 }

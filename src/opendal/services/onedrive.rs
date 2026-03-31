@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
@@ -24,5 +25,9 @@ impl RemoteConfig for OneDriveConfig {
         map.insert(CLIENT_SECRET.to_string(), self.client_secret);
         map.insert(ROOT.to_string(), self.root);
         return map;
+    }
+
+    fn scheme(&self) -> Scheme {
+        Scheme::Onedrive
     }
 }

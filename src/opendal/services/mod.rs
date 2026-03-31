@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use serde_derive::{Deserialize, Serialize};
 
 mod dropbox;
 mod ftp;
@@ -7,13 +8,12 @@ mod onedrive;
 mod s3;
 mod b2;
 
-use serde_derive::{Deserialize, Serialize};
-use crate::opendal::services::b2::B2Config;
-use crate::opendal::services::dropbox::DropboxConfig;
-use crate::opendal::services::ftp::FtpConfig;
-use crate::opendal::services::gdrive::GDriveConfig;
-use crate::opendal::services::onedrive::OneDriveConfig;
-use crate::opendal::services::s3::S3Config;
+pub use b2::*;
+pub use dropbox::*;
+pub use ftp::*;
+pub use gdrive::*;
+pub use onedrive::*;
+pub use s3::*;
 
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Debug)]
 #[serde(tag = "Type")]
@@ -38,8 +38,19 @@ impl RemoteSource {
             RemoteSource::S3(x) => x.to_map(),
         }
     }
+    pub(crate) fn scheme(&self) -> opendal::Scheme {
+        match self {
+            RemoteSource::B2(x) => x.scheme(),
+            RemoteSource::Dropbox(x) => x.scheme(),
+            RemoteSource::FTP(x) => x.scheme(),
+            RemoteSource::Google(x) => x.scheme(),
+            RemoteSource::OneDrive(x) => x.scheme(),
+            RemoteSource::S3(x) => x.scheme(),
+        }
+    }
 }
 
 trait RemoteConfig {
     fn to_map(self) -> BTreeMap<String, String>;
+    fn scheme(&self) -> opendal::Scheme;
 }

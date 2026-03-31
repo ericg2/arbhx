@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
@@ -29,5 +30,9 @@ impl RemoteConfig for S3Config {
         map.insert(ACCESS_KEY_ID.to_string(), self.access_key_id);
         map.insert(SECRET_ACCESS_KEY.to_string(), self.secret_access_key);
         return map;
+    }
+
+    fn scheme(&self) -> Scheme {
+        Scheme::S3
     }
 }

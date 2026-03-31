@@ -1,6 +1,4 @@
 use crate::backend::DataIgnore;
-use crate::file::DataFile;
-use crate::filters::FilterOptions;
 use async_trait::async_trait;
 use dashmap::DashMap;
 use ignore::overrides::{Override, OverrideBuilder};
@@ -8,7 +6,7 @@ use ignore::Match;
 use std::io;
 use std::io::ErrorKind;
 use std::path::PathBuf;
-use crate::meta::ExtMetadata;
+use crate::{ExtMetadata, FilterOptions};
 
 /// Represents a **stateful** sorting for a [`DataQuery`]
 pub struct SimpleIgnore {

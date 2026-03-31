@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
@@ -23,5 +24,9 @@ impl RemoteConfig for FtpConfig {
         map.insert(USER.to_string(), self.username);
         map.insert(PASSWORD.to_string(), self.password);
         return map;
+    }
+
+    fn scheme(&self) -> Scheme {
+        Scheme::Ftp
     }
 }

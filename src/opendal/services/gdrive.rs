@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
@@ -23,5 +24,9 @@ impl RemoteConfig for GDriveConfig {
         map.insert(CLIENT_ID.to_string(), self.client_id);
         map.insert(CLIENT_SECRET.to_string(), self.client_secret);
         return map;
+    }
+
+    fn scheme(&self) -> Scheme {
+        Scheme::Gdrive
     }
 }

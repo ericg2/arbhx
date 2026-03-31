@@ -3,11 +3,12 @@ use std::io;
 use std::io::ErrorKind;
 use std::str::FromStr;
 use derive_setters::Setters;
+use serde_derive::{Deserialize, Serialize};
 
 /// Throttling parameters
 ///
 /// Note: Throttle implements [`FromStr`] to read it from something like "10kiB,10MB"
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Setters)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Setters, Serialize, Deserialize)]
 pub struct Throttle {
     pub bandwidth: u32,
     pub burst: u32,

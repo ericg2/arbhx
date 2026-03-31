@@ -1,22 +1,16 @@
 use std::path::{Component, Path, PathBuf};
 
-mod backend;
-mod meta;
-mod filters;
-mod file;
-mod query;
-mod local;
-mod layers;
+pub(crate) mod backend;
+pub(crate) mod local;
+pub(crate) mod opendal;
+pub(crate) mod util;
+pub(crate) mod vfs;
 
-#[cfg(feature = "opendal")]
-mod opendal;
-
-#[cfg(feature = "blocking")]
-mod blocking;
-
-mod rustic;
-mod sort;
-mod operator;
+pub use {
+    local::config::LocalConfig,
+    opendal::{config::RemoteConfig, services::*},
+    vfs::*,
+};
 
 pub fn join_force(base: impl AsRef<Path>, p: impl AsRef<Path>) -> PathBuf {
     let mut out = PathBuf::from(base.as_ref());

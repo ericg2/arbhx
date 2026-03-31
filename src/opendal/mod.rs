@@ -1,12 +1,12 @@
 use std::path::Path;
 
-mod data;
-mod throttle;
-mod handle;
-mod reader;
-mod writer;
-mod query;
-mod services;
+pub(crate) mod data;
+pub(crate) mod throttle;
+pub(crate) mod reader;
+pub(crate) mod writer;
+pub(crate) mod query;
+pub(crate) mod services;
+pub(crate) mod config;
 
 pub(crate) fn path_to_str(p: &Path, is_dir: bool) -> String {
     let mut r = String::from(p.to_str().unwrap());
