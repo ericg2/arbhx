@@ -2,6 +2,13 @@
 name = "arbhx"
 version = "0.1.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "A simple VFS layer for Rust."
+homepage = "https://ericg2.github.io/"
+repository = "https://github.com/ericg2/arbhx"
+readme = "README.md"
+categories = ["filesystem"]
+keywords = ["vfs"]
 
 [dependencies]
 async-trait = "0.1.89"
