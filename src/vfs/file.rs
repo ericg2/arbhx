@@ -9,10 +9,7 @@ use std::io;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-#[skip_serializing_none]
-#[derive(
-    Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Setters,
-)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ExtMetadata {
     /// The full path of the file.
     pub path: PathBuf,

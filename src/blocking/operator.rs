@@ -34,45 +34,45 @@ impl DataOperator {
     pub fn usage(&self) -> io::Result<Option<UsageStat>> {
         self.rt.block_on(self.vfs.usage())
     }
-    pub fn stat(&self, item: &Path) -> io::Result<Option<ExtMetadata>> {
+    pub fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<ExtMetadata>> {
         self.rt.block_on(self.vfs.stat(item))
     }
-    pub fn open_read(&self, item: &Path) -> io::Result<Box<dyn CompatRead>> {
+    pub fn open_read(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn CompatRead>> {
         let handle = self.rt.block_on(self.vfs.open_read(item))?;
         let ret = ReadCompat::new(self.rt.clone(), handle);
         Ok(Box::new(ret))
     }
-    pub fn open_full(&self, item: &Path) -> io::Result<Box<dyn CompatFull>> {
+    pub fn open_full(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn CompatFull>> {
         let handle = self.rt.block_on(self.vfs.open_full(item))?;
         let ret = FullCompat::new(self.rt.clone(), handle);
         Ok(Box::new(ret))
     }
-    pub fn open_append(&self, item: &Path, truncate: bool) -> io::Result<Box<dyn CompatAppend>> {
+    pub fn open_append(&self, item: impl AsRef<Path>, truncate: bool) -> io::Result<Box<dyn CompatAppend>> {
         let handle = self.rt.block_on(self.vfs.open_append(item, truncate))?;
         let ret = AppendCompat::new(self.rt.clone(), handle);
         Ok(Box::new(ret))
     }
-    pub fn remove_dir(&self, dirname: &Path) -> io::Result<()> {
+    pub fn remove_dir(&self, dirname: impl AsRef<Path>) -> io::Result<()> {
         self.rt.block_on(self.vfs.remove_dir(dirname))
     }
-    pub fn remove_file(&self, filename: &Path) -> io::Result<()> {
+    pub fn remove_file(&self, filename: impl AsRef<Path>) -> io::Result<()> {
         self.rt.block_on(self.vfs.remove_file(filename))
     }
-    pub fn create_dir(&self, item: &Path) -> io::Result<()> {
+    pub fn create_dir(&self, item: impl AsRef<Path>) -> io::Result<()> {
         self.rt.block_on(self.vfs.create_dir(item))
     }
-    pub fn set_length(&self, item: &Path, size: u64) -> io::Result<()> {
+    pub fn set_length(&self, item: impl AsRef<Path>, size: u64) -> io::Result<()> {
         self.rt.block_on(self.vfs.set_length(item, size))
     }
-    pub fn move_to(&self, old: &Path, new: &Path) -> io::Result<()> {
+    pub fn move_to(&self, old: impl AsRef<Path>, new: impl AsRef<Path>) -> io::Result<()> {
         self.rt.block_on(self.vfs.move_to(old, new))
     }
-    pub fn copy_to(&self, old: &Path, new: &Path) -> io::Result<()> {
+    pub fn copy_to(&self, old: impl AsRef<Path>, new: impl AsRef<Path>) -> io::Result<()> {
         self.rt.block_on(self.vfs.copy_to(old, new))
     }
     pub fn set_times(
         &self,
-        item: &Path,
+        item: impl AsRef<Path>,
         mtime: DateTime<Local>,
         atime: DateTime<Local>,
     ) -> io::Result<()> {
@@ -80,7 +80,7 @@ impl DataOperator {
     }
     pub fn list(
         &self,
-        item: &Path,
+        item: impl AsRef<Path>,
         opts: Option<FilterOptions>,
         recursive: bool,
         include_root: bool,
