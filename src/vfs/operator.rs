@@ -3,19 +3,16 @@ use crate::backend::{DataAppend, DataFull, DataRead, DataVfs, VfsFull, VfsReader
 use crate::local::config::LocalConfig;
 use crate::local::data::LocalBackend;
 
-use crate::DataQuery;
-use crate::ExtMetadata;
 use crate::opendal::config::RemoteConfig;
 use crate::opendal::data::OpenDALBackend;
+use crate::ExtMetadata;
+use crate::{DataConfig, DataQuery};
 use chrono::{DateTime, Local};
 use delegate::delegate;
-use futures_lite::StreamExt;
-use serde_derive::{Deserialize, Serialize};
 use std::io;
 use std::io::ErrorKind;
 use std::ops::Deref;
 use std::path::Path;
-use std::str::FromStr;
 use std::sync::Arc;
 
 #[derive(Debug)]
@@ -99,13 +96,6 @@ impl DataInner {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
-pub enum DataConfig {
-    Local(LocalConfig),
-    Remote(RemoteConfig),
-}
-
 #[derive(Clone)]
 pub struct DataOperator {
     be: Arc<DataInner>,
@@ -147,21 +137,21 @@ impl DataOperator {
 impl DataOperator {
     delegate! {
         to self.be {
-            async fn stat(&self, item: &Path) -> io::Result<Option<ExtMetadata>>;
-            async fn open_read(&self, item: &Path) -> io::Result<Box<dyn DataRead>>;
-            async fn open_full(&self, item: &Path) -> io::Result<Box<dyn DataFull>>;
-            async fn remove_dir(&self, dirname: &Path) -> io::Result<()>;
-            async fn remove_file(&self, filename: &Path) -> io::Result<()>;
-            async fn create_dir(&self, item: &Path) -> io::Result<()>;
-            async fn set_length(&self, item: &Path, size: u64) -> io::Result<()>;
-            async fn move_to(&self, old: &Path, new: &Path) -> io::Result<()>;
-            async fn copy_to(&self, old: &Path, new: &Path) -> io::Result<()>;
-            async fn open_append(
+            pub async fn stat(&self, item: &Path) -> io::Result<Option<ExtMetadata>>;
+            pub async fn open_read(&self, item: &Path) -> io::Result<Box<dyn DataRead>>;
+            pub async fn open_full(&self, item: &Path) -> io::Result<Box<dyn DataFull>>;
+            pub async fn remove_dir(&self, dirname: &Path) -> io::Result<()>;
+            pub async fn remove_file(&self, filename: &Path) -> io::Result<()>;
+            pub async fn create_dir(&self, item: &Path) -> io::Result<()>;
+            pub async fn set_length(&self, item: &Path, size: u64) -> io::Result<()>;
+            pub async fn move_to(&self, old: &Path, new: &Path) -> io::Result<()>;
+            pub async fn copy_to(&self, old: &Path, new: &Path) -> io::Result<()>;
+            pub async fn open_append(
                 &self,
                 item: &Path,
                 truncate: bool,
             ) -> io::Result<Box<dyn DataAppend>>;
-            async fn set_times(
+            pub async fn set_times(
                 &self,
                 item: &Path,
                 mtime: DateTime<Local>,

@@ -5,9 +5,13 @@ pub(crate) mod local;
 pub(crate) mod opendal;
 pub(crate) mod util;
 pub(crate) mod vfs;
+pub(crate) mod config;
+
+pub mod blocking;
 
 pub use {
     local::config::LocalConfig,
+    config::DataConfig,
     opendal::{config::RemoteConfig, services::*},
     vfs::*,
 };

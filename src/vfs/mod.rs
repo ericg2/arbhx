@@ -6,7 +6,7 @@ mod query;
 pub use {
     file::{DataFile, ExtMetadata},
     filters::FilterOptions,
-    operator::{DataConfig, DataOperator},
+    operator::{DataOperator},
     query::DataQuery,
 };
 
