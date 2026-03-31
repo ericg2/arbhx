@@ -99,7 +99,7 @@ impl DataInner {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DataOperator {
     pub(crate) be: Arc<DataInner>,
 }

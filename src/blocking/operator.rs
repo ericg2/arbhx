@@ -10,6 +10,7 @@ use std::io;
 use std::path::Path;
 use tokio::runtime::{Handle, Runtime};
 
+#[derive(Clone, Debug)]
 pub struct DataOperator {
     vfs: crate::DataOperator,
     rt: Handle,
