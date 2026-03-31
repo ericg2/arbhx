@@ -6,12 +6,13 @@ mod reader;
 mod writer;
 mod full;
 mod query;
+mod file;
 
 pub use {
     operator::DataOperator,
-    query::DataQuery
+    query::DataQuery,
+    file::DataFile
 };
-use crate::{DataFile, ExtMetadata};
 
 pub trait CompatRead: Read + Seek + Send + Sync + 'static {}
 

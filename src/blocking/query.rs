@@ -1,5 +1,5 @@
 use crate::backend::{MetaStream, SizedQuery};
-use crate::blocking::{FileIterator};
+use crate::blocking::FileIterator;
 use crate::vfs::{DataInner, FileStream};
 use crate::{DataFile, ExtMetadata};
 use futures_lite::{Stream, StreamExt};
@@ -45,13 +45,13 @@ impl StreamCompat {
 }
 
 impl Iterator for StreamCompat {
-    type Item = io::Result<DataFile>;
+    type Item = io::Result<crate::blocking::DataFile>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let item = self
             .rt
             .block_on(self.stream.next())?
-            .map(|x| DataFile::new(x, self.be.clone()));
+            .map(|x| crate::blocking::DataFile::new(self.rt.clone(), x, self.be.clone()));
         Some(item)
     }
 }
