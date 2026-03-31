@@ -1,10 +1,11 @@
+use super::operator::DataInner;
+use crate::DataFile;
 use crate::backend::SizedQuery;
 use futures_lite::{Stream, StreamExt};
 use std::io;
+use std::ops::Deref;
 use std::pin::Pin;
 use std::sync::Arc;
-use crate::DataFile;
-use super::operator::DataInner;
 
 #[derive(Clone)]
 pub struct DataQuery {
@@ -16,7 +17,11 @@ impl DataQuery {
     pub(crate) fn new(be: Arc<DataInner>, query: Arc<dyn SizedQuery>) -> Self {
         Self { be, query }
     }
-    
+
+    pub(crate) fn to_query(self) -> Arc<dyn SizedQuery> {
+        self.query
+    }
+
     async fn size(&self) -> io::Result<Option<u64>> {
         self.query.clone().size().await
     }
@@ -32,4 +37,4 @@ impl DataQuery {
     }
 }
 
-pub type FileStream = dyn Stream<Item = io::Result<DataFile>> + Send;
+pub(crate) type FileStream = dyn Stream<Item = io::Result<DataFile>> + Send;

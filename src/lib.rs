@@ -7,6 +7,7 @@ pub(crate) mod util;
 pub(crate) mod vfs;
 pub(crate) mod config;
 
+#[cfg(feature = "blocking")]
 pub mod blocking;
 
 pub use {
@@ -14,6 +15,7 @@ pub use {
     config::DataConfig,
     opendal::{config::RemoteConfig, services::*},
     vfs::*,
+    backend::{DataAppend, DataRead, DataFull, }
 };
 
 pub fn join_force(base: impl AsRef<Path>, p: impl AsRef<Path>) -> PathBuf {

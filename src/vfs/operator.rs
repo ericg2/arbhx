@@ -1,5 +1,5 @@
 use super::FilterOptions;
-use crate::backend::{DataAppend, DataFull, DataRead, DataVfs, VfsFull, VfsReader, VfsWriter};
+use crate::backend::{DataAppend, DataFull, DataRead, DataVfs, UsageStat, VfsFull, VfsReader, VfsWriter};
 use crate::local::config::LocalConfig;
 use crate::local::data::LocalBackend;
 
@@ -50,6 +50,9 @@ impl DataInner {
 }
 
 impl DataInner {
+    pub async fn usage(&self) -> io::Result<Option<UsageStat>> {
+        self.reader()?.get_usage().await.transpose()
+    }
     pub async fn open_read(&self, item: &Path) -> io::Result<Box<dyn DataRead>> {
         self.reader()?.open_read(item).await
     }
@@ -98,7 +101,7 @@ impl DataInner {
 
 #[derive(Clone)]
 pub struct DataOperator {
-    be: Arc<DataInner>,
+    pub(crate) be: Arc<DataInner>,
 }
 
 impl DataOperator {
@@ -146,6 +149,7 @@ impl DataOperator {
             pub async fn set_length(&self, item: &Path, size: u64) -> io::Result<()>;
             pub async fn move_to(&self, old: &Path, new: &Path) -> io::Result<()>;
             pub async fn copy_to(&self, old: &Path, new: &Path) -> io::Result<()>;
+            pub async fn usage(&self) -> io::Result<Option<UsageStat>>;
             pub async fn open_append(
                 &self,
                 item: &Path,

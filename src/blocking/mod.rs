@@ -5,6 +5,13 @@ mod operator;
 mod reader;
 mod writer;
 mod full;
+mod query;
+
+pub use {
+    operator::DataOperator,
+    query::DataQuery
+};
+use crate::{DataFile, ExtMetadata};
 
 pub trait CompatRead: Read + Seek + Send + Sync + 'static {}
 
@@ -13,3 +20,5 @@ pub trait CompatAppend: Write + Send + Sync + 'static {
 }
 
 pub trait CompatFull: CompatRead + CompatAppend {}
+
+pub type FileIterator = dyn Iterator<Item = io::Result<DataFile>> + Send;

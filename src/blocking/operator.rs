@@ -1,14 +1,13 @@
+use crate::backend::UsageStat;
 use crate::blocking::full::FullCompat;
 use crate::blocking::reader::ReadCompat;
 use crate::blocking::writer::AppendCompat;
+use crate::blocking::DataQuery;
 use crate::blocking::{CompatAppend, CompatFull, CompatRead};
-use crate::local::data::LocalBackend;
-use crate::opendal::data::OpenDALBackend;
-use crate::{DataConfig, ExtMetadata, LocalConfig, RemoteConfig};
+use crate::{DataConfig, ExtMetadata, FilterOptions, LocalConfig, RemoteConfig};
 use chrono::{DateTime, Local};
 use std::io;
 use std::path::Path;
-use std::sync::Arc;
 use tokio::runtime::{Handle, Runtime};
 
 pub struct DataOperator {
@@ -31,6 +30,9 @@ impl DataOperator {
 }
 
 impl DataOperator {
+    pub fn usage(&self) -> io::Result<Option<UsageStat>> {
+        self.rt.block_on(self.vfs.usage())
+    }
     pub fn stat(&self, item: &Path) -> io::Result<Option<ExtMetadata>> {
         self.rt.block_on(self.vfs.stat(item))
     }
@@ -74,5 +76,19 @@ impl DataOperator {
         atime: DateTime<Local>,
     ) -> io::Result<()> {
         self.rt.block_on(self.vfs.set_times(item, mtime, atime))
+    }
+    pub fn list(
+        &self,
+        item: &Path,
+        opts: Option<FilterOptions>,
+        recursive: bool,
+        include_root: bool,
+    ) -> io::Result<DataQuery> {
+        let query = self
+            .rt
+            .block_on(self.vfs.list(item, opts, recursive, include_root))?
+            .to_query();
+        let ret = DataQuery::new(self.rt.clone(), self.vfs.be.clone(), query);
+        Ok(ret)
     }
 }

@@ -11,3 +11,4 @@ pub use {
 };
 
 pub(crate) use operator::DataInner;
+pub(crate) use query::FileStream;
