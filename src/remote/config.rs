@@ -12,7 +12,7 @@ use crate::remote::services::RemoteSource;
 use crate::operator::DataInner;
 
 /// The config for a remote source.
-#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize, Hash)]
 pub struct RemoteConfig {
     /// The maximum # of open connections.
     pub max_threads: Option<u8>,
@@ -32,7 +32,7 @@ impl VfsConfig for RemoteConfig {
 /// Throttling parameters
 ///
 /// Note: Throttle implements [`FromStr`] to read it from something like "10kiB,10MB"
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Setters, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Setters, Serialize, Deserialize, Hash)]
 pub struct Throttle {
     pub bandwidth: u32,
     pub burst: u32,

@@ -30,7 +30,7 @@ pub(crate) struct DataInner {
     pub full: Option<Arc<dyn VfsFull>>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug, Hash)]
 #[non_exhaustive]
 pub enum DataMode {
     Local(LocalConfig),

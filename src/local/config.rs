@@ -5,7 +5,7 @@ use crate::backend::{DataVfs, VfsConfig};
 use crate::local::data::LocalBackend;
 use crate::operator::DataInner;
 
-#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize, Hash)]
 pub struct LocalConfig {
     pub path: PathBuf
 }
