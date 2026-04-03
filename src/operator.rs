@@ -4,6 +4,7 @@ use crate::backend::{
 use crate::fs::{DataFile, DataQuery, FilterOptions, Metadata};
 use crate::local::LocalConfig;
 use crate::remote::RemoteConfig;
+use bytesize::ByteSize;
 use chrono::{DateTime, Local};
 use delegate::delegate;
 use serde_derive::{Deserialize, Serialize};
@@ -34,7 +35,16 @@ pub(crate) struct DataInner {
 #[non_exhaustive]
 pub enum DataMode {
     Local(LocalConfig),
-    Remote(RemoteConfig)
+    Remote(RemoteConfig),
+}
+
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug)]
+pub struct DataInfo {
+    pub id: Uuid,
+    pub mode: DataMode,
+    pub can_read: bool,
+    pub can_append: bool,
+    pub can_full: bool,
 }
 
 impl PartialEq<Self> for DataInner {
@@ -144,6 +154,18 @@ impl Operator {
     pub fn new<V: VfsConfig>(config: V) -> std::io::Result<Self> {
         let be = config.to_backend()?;
         Ok(Self { be })
+    }
+    pub fn id(&self) -> Uuid {
+        self.be.id
+    }
+    pub fn info(&self) -> DataInfo {
+        DataInfo {
+            id: self.be.id,
+            mode: self.be.info.clone(),
+            can_read: self.be.reader.is_some(),
+            can_append: self.be.writer.is_some(),
+            can_full: self.be.full.is_some(),
+        }
     }
 }
 

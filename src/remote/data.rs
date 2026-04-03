@@ -13,7 +13,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use uuid::Uuid;
 use crate::fs::FilterOptions;
-use crate::operator::{DataInner, DataMode};
+use crate::operator::{DataInfo, DataInner, DataMode};
 use crate::remote::{path_to_str, RemoteConfig};
 use crate::remote::query::OpenDALQuery;
 use crate::remote::reader::OpenDALReader;
