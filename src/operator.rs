@@ -1,16 +1,12 @@
-use super::FilterOptions;
 use crate::backend::{
-    DataAppend, DataFull, DataRead, DataVfs, UsageStat, VfsFull, VfsReader, VfsWriter,
+    DataAppend, DataFull, DataRead, DataVfs, UsageStat, VfsConfig, VfsFull, VfsReader, VfsWriter,
 };
-use crate::local::config::LocalConfig;
-use crate::local::data::LocalBackend;
-
-use crate::opendal::config::RemoteConfig;
-use crate::opendal::data::OpenDALBackend;
-use crate::{DataConfig, DataQuery};
-use crate::{DataFile, Metadata};
+use crate::fs::{DataFile, DataQuery, FilterOptions, Metadata};
+use crate::local::LocalConfig;
+use crate::remote::RemoteConfig;
 use chrono::{DateTime, Local};
 use delegate::delegate;
+use serde_derive::{Deserialize, Serialize};
 use std::io;
 use std::io::ErrorKind;
 use std::ops::Deref;
@@ -24,12 +20,21 @@ use uuid::Uuid;
 pub(crate) struct DataInner {
     /// The ID to use for equality comparisons.
     pub id: Uuid,
+    /// The info to use for encoding/decoding.
+    pub info: DataMode,
     /// The [`VfsReader`] system if applicable.
     pub reader: Option<Arc<dyn VfsReader>>,
     /// The [`VfsWriter`] system if applicable.
     pub writer: Option<Arc<dyn VfsWriter>>,
     /// The [`VfsFull`] system if applicable.
     pub full: Option<Arc<dyn VfsFull>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug)]
+#[non_exhaustive]
+pub enum DataMode {
+    Local(LocalConfig),
+    Remote(RemoteConfig)
 }
 
 impl PartialEq<Self> for DataInner {
@@ -130,17 +135,14 @@ pub struct Operator {
 
 impl Operator {
     /// Creates a new [`Operator`] with
-    pub fn local(config: LocalConfig) -> std::io::Result<Self> {
-        Self::new(DataConfig::Local(config))
+    pub fn with_info(info: DataMode) -> std::io::Result<Self> {
+        match info {
+            DataMode::Local(x) => Self::new(x),
+            DataMode::Remote(x) => Self::new(x),
+        }
     }
-    pub fn remote(config: RemoteConfig) -> std::io::Result<Self> {
-        Self::new(DataConfig::Remote(config))
-    }
-    pub fn new(config: DataConfig) -> std::io::Result<Self> {
-        let be = Arc::new(match config {
-            DataConfig::Local(x) => LocalBackend::new(x)?.to_inner(),
-            DataConfig::Remote(x) => OpenDALBackend::new(x)?.to_inner(),
-        });
+    pub fn new<V: VfsConfig>(config: V) -> std::io::Result<Self> {
+        let be = config.to_backend()?;
         Ok(Self { be })
     }
 }

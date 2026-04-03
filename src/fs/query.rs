@@ -1,11 +1,11 @@
-use super::operator::DataInner;
-use crate::DataFile;
+use crate::operator::DataInner;
 use crate::backend::SizedQuery;
 use futures_lite::{Stream, StreamExt};
 use std::io;
 use std::ops::Deref;
 use std::pin::Pin;
 use std::sync::Arc;
+use crate::fs::DataFile;
 
 #[derive(Clone)]
 pub struct DataQuery {

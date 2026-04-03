@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
-use crate::opendal::services::RemoteConfig;
+use crate::remote::services::RemoteConfig;
 
 /// Represents a G-Drive config. All fields are required.
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Debug)]

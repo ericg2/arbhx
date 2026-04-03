@@ -1,5 +1,5 @@
+use std::fmt::{Debug, Formatter};
 use crate::backend::DataRead;
-use crate::opendal::path_to_str;
 use async_trait::async_trait;
 use opendal::{FuturesAsyncReader, Operator};
 use std::io::SeekFrom;
@@ -8,10 +8,19 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, AsyncSeek, ReadBuf};
 use tokio_util::compat::{Compat, FuturesAsyncReadCompatExt};
+use crate::remote::path_to_str;
 
 pub struct OpenDALReader {
     pub(crate) path: PathBuf,
     pub(crate) rdr: Compat<FuturesAsyncReader>,
+}
+
+impl Debug for OpenDALReader {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenDALReader")
+            .field("path", &self.path)
+            .finish()
+    }
 }
 
 impl OpenDALReader {

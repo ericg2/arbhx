@@ -15,13 +15,14 @@ use std::sync::Arc;
 use sysinfo::Disks;
 use tokio::fs;
 use uuid::Uuid;
-use crate::{Metadata, FilterOptions};
-use crate::vfs::DataInner;
+use crate::fs::{FilterOptions, Metadata};
+use crate::operator::{DataInner, DataMode};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LocalBackend {
     pub(crate) id: Uuid,
     pub(crate) path: PathBuf,
+    pub(crate) config: LocalConfig,
 }
 
 impl LocalBackend {
@@ -32,7 +33,8 @@ impl LocalBackend {
     pub fn new(config: LocalConfig) -> std::io::Result<Self> {
         Ok(Self {
             id: Uuid::new_v4(),
-            path: config.path
+            path: config.path.to_path_buf(),
+            config,
         })
     }
 
@@ -73,9 +75,10 @@ impl DataVfs for LocalBackend {
 
     fn to_inner(self) -> DataInner {
         let id = self.id;
-        let ret = Arc::new(self);
+        let ret = Arc::new(self.clone());
         DataInner {
             id,
+            info: DataMode::Local(self.config),
             reader: Some(ret.clone()),
             writer: Some(ret.clone()),
             full: Some(ret.clone()),

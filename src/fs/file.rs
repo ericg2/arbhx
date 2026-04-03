@@ -1,5 +1,5 @@
-use super::operator::DataInner;
 use crate::backend::{DataAppend, DataFull, DataRead};
+use crate::operator::DataInner;
 use bytesize::ByteSize;
 use chrono::{DateTime, Utc};
 use serde_derive::{Deserialize, Serialize};

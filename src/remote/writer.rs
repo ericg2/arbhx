@@ -1,4 +1,4 @@
-use crate::opendal::path_to_str;
+use std::fmt::{Debug, Formatter};
 use opendal::{FuturesAsyncWriter, Operator};
 use opendal::options::WriteOptions;
 use std::io;
@@ -10,10 +10,19 @@ use async_trait::async_trait;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 use tokio_util::compat::{Compat, FuturesAsyncWriteCompatExt};
 use crate::backend::DataAppend;
+use crate::remote::path_to_str;
 
 pub struct OpenDALWriter {
     pub(crate) path: PathBuf,
     pub(crate) wtr: Compat<FuturesAsyncWriter>,
+}
+
+impl Debug for OpenDALWriter {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OpenDALWriter")
+            .field("path", &self.path)
+            .finish()
+    }
 }
 
 impl OpenDALWriter {

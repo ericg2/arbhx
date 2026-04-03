@@ -1,10 +1,11 @@
-use crate::backend::UsageStat;
+use crate::backend::{UsageStat, VfsConfig};
 use crate::blocking::full::FullCompat;
 use crate::blocking::reader::ReadCompat;
 use crate::blocking::writer::AppendCompat;
 use crate::blocking::{CompatAppend, CompatFull, CompatRead};
 use crate::blocking::{DataFile, DataQuery};
-use crate::{DataConfig, FilterOptions, LocalConfig, Metadata, RemoteConfig};
+use crate::fs::{FilterOptions, Metadata};
+use crate::DataMode;
 use chrono::{DateTime, Local};
 use std::io;
 use std::ops::Deref;
@@ -18,13 +19,12 @@ pub struct Operator {
 }
 
 impl Operator {
-    pub fn local(config: LocalConfig) -> std::io::Result<Self> {
-        Self::new(DataConfig::Local(config))
+    pub fn with_info(config: DataMode) -> std::io::Result<Self> {
+        let vfs = crate::Operator::with_info(config)?;
+        let rt = Runtime::new()?.handle().clone();
+        Ok(Self { vfs, rt })
     }
-    pub fn remote(config: RemoteConfig) -> std::io::Result<Self> {
-        Self::new(DataConfig::Remote(config))
-    }
-    pub fn new(config: DataConfig) -> std::io::Result<Self> {
+    pub fn new<V: VfsConfig>(config: V) -> std::io::Result<Self> {
         let vfs = crate::Operator::new(config)?;
         let rt = Runtime::new()?.handle().clone();
         Ok(Self { vfs, rt })

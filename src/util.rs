@@ -6,7 +6,7 @@ use ignore::Match;
 use std::io;
 use std::io::ErrorKind;
 use std::path::PathBuf;
-use crate::{FilterOptions, Metadata};
+use crate::fs::{FilterOptions, Metadata};
 
 /// Represents a **stateful** sorting for a [`DataQuery`]
 pub struct SimpleIgnore {

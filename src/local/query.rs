@@ -7,7 +7,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
-use crate::{FilterOptions, Metadata};
+use crate::fs::{FilterOptions, Metadata};
 
 pub struct LocalQuery {
     pub(crate) abs: PathBuf,

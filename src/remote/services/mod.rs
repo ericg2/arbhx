@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use serde_derive::{Deserialize, Serialize};
-use crate::Operator;
 
 mod dropbox;
 mod ftp;

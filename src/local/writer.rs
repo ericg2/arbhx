@@ -10,6 +10,7 @@ use tokio::fs;
 use tokio::fs::{File, OpenOptions};
 use tokio::io::{AsyncRead, AsyncSeek, AsyncWrite, AsyncWriteExt, ReadBuf};
 
+#[derive(Debug)]
 pub struct LocalWriter {
     pub(crate) file: File,
     pub(crate) path: PathBuf,

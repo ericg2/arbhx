@@ -1,11 +1,6 @@
 use crate::backend::{
     DataAppend, DataRead, DataVfs, SizedQuery, UsageStat, VfsReader, VfsWriter,
 };
-use crate::opendal::config::RemoteConfig;
-use crate::opendal::path_to_str;
-use crate::opendal::query::OpenDALQuery;
-use crate::opendal::reader::OpenDALReader;
-use crate::opendal::writer::OpenDALWriter;
 use async_trait::async_trait;
 use chrono::{DateTime, Local, Utc};
 use opendal::layers::{ConcurrentLimitLayer, LoggingLayer, ThrottleLayer};
@@ -17,8 +12,12 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::SystemTime;
 use uuid::Uuid;
-use crate::{FilterOptions};
-use crate::vfs::DataInner;
+use crate::fs::FilterOptions;
+use crate::operator::{DataInner, DataMode};
+use crate::remote::{path_to_str, RemoteConfig};
+use crate::remote::query::OpenDALQuery;
+use crate::remote::reader::OpenDALReader;
+use crate::remote::writer::OpenDALWriter;
 
 /// `OpenDALBackend` contains a wrapper around an [`Operator`] of the `OpenDAL` library.
 #[derive(Clone, Debug)]
@@ -61,8 +60,8 @@ impl OpenDALBackend {
     /// 
     /// # Returns
     /// A valid [`crate::Metadata`] for use with operations.
-    pub(crate) fn meta(path: &Path, meta: &Metadata) -> crate::Metadata {
-        crate::Metadata {
+    pub(crate) fn meta(path: &Path, meta: &Metadata) -> crate::fs::Metadata {
+        crate::fs::Metadata {
             path: path.to_path_buf(),
             is_dir: meta.is_dir(),
             mtime: meta
@@ -83,14 +82,14 @@ impl OpenDALBackend {
     ///
     /// # Returns
     /// A valid [`crate::Metadata`] for use with operations.
-    pub(crate) fn meta_str(path: &str, meta: &Metadata) -> io::Result<crate::Metadata> {
+    pub(crate) fn meta_str(path: &str, meta: &Metadata) -> io::Result<crate::fs::Metadata> {
         let path =
             PathBuf::from_str(path).map_err(|e| io::Error::new(ErrorKind::InvalidInput, e))?;
         Ok(Self::meta(&path, meta))
     }
 
     /// Converts an [`opendal::Entry`] into a valid [`crate::Metadata`] instance.
-    pub(crate) fn meta_entry(entry: opendal::Entry) -> io::Result<crate::Metadata> {
+    pub(crate) fn meta_entry(entry: opendal::Entry) -> io::Result<crate::fs::Metadata> {
         Self::meta_str(entry.path(), entry.metadata())
     }
 }
@@ -102,9 +101,10 @@ impl DataVfs for OpenDALBackend {
 
     fn to_inner(self) -> DataInner {
         let id = self.id;
-        let ret = Arc::new(self);
+        let ret = Arc::new(self.clone());
         DataInner {
             id,
+            info: DataMode::Remote(self.config),
             reader: Some(ret.clone()),
             writer: Some(ret.clone()),
             full: None,
@@ -127,7 +127,7 @@ impl VfsReader for OpenDALBackend {
         Ok(Box::new(ret))
     }
 
-    async fn get_metadata(&self, item: &Path) -> io::Result<Option<crate::Metadata>> {
+    async fn get_metadata(&self, item: &Path) -> io::Result<Option<crate::fs::Metadata>> {
         let path = path_to_str(item, false);
         if !self.operator.exists(&path).await? {
             return Ok(None);

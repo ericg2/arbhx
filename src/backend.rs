@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
 use std::fmt::Debug;
@@ -7,15 +8,18 @@ use std::pin::Pin;
 use std::sync::Arc;
 use bytes::Bytes;
 use futures_lite::Stream;
+use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 use tokio::io::{AsyncRead, AsyncSeek, AsyncWrite};
 use uuid::Uuid;
-use crate::{FilterOptions, Metadata};
+use crate::fs::{FilterOptions, Metadata};
+use crate::operator::DataInner;
 
 #[async_trait]
-pub trait DataRead: AsyncRead + AsyncSeek + Send + Sync + Unpin + 'static {}
+pub trait DataRead: AsyncRead + AsyncSeek + Send + Sync + 'static + Debug + Unpin  {}
 
 #[async_trait]
-pub trait DataAppend: AsyncWrite + Send + Sync + Unpin + 'static {
+pub trait DataAppend: AsyncWrite + Send + Sync + 'static + Debug + Unpin  {
     /// Finalize and close the stream.
     ///
     /// # Errors
@@ -78,8 +82,12 @@ pub type MetaStream = dyn Stream<Item=io::Result<Metadata>> + Send;
 pub trait DataVfs {
     /// Retrieves the ID for the [`VfsReader`]. Useful for cross-FS.
     fn get_id(&self) -> Uuid;
-    
-    fn to_inner(self) -> crate::vfs::DataInner;
+
+    fn to_inner(self) -> DataInner;
+}
+
+pub trait VfsConfig: Serialize + DeserializeOwned + Send + Sync + 'static + Debug {
+    fn to_backend(self) -> io::Result<Arc<DataInner>>;
 }
 
 /// Writable virtual filesystem interface.

@@ -1,12 +1,14 @@
 use std::path::Path;
 
-pub(crate) mod data;
-pub(crate) mod throttle;
-pub(crate) mod reader;
-pub(crate) mod writer;
-pub(crate) mod query;
-pub(crate) mod services;
-pub(crate) mod config;
+mod data;
+mod throttle;
+mod reader;
+mod writer;
+mod query;
+mod services;
+mod config;
+
+pub use config::{RemoteConfig, Throttle};
 
 /// Converts a [`Path`] into an OpenDAL-supported [`String`].
 /// 

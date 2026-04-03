@@ -1,6 +1,9 @@
-pub(crate) mod data;
-pub(crate) mod reader;
-pub(crate) mod writer;
-pub(crate) mod query;
-pub(crate) mod config;
-pub(crate) mod tests;
+mod data;
+mod reader;
+mod writer;
+mod query;
+mod config;
+mod tests;
+
+pub use config::LocalConfig;
+pub(crate) use data::LocalBackend;

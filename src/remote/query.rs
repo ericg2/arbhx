@@ -1,8 +1,5 @@
 use crate::backend::{DataIgnore, MetaStream, SizedQuery};
-use crate::opendal::data::OpenDALBackend;
-use crate::opendal::path_to_str;
 use crate::util::SimpleIgnore;
-use crate::{Metadata, FilterOptions};
 use async_trait::async_trait;
 use futures_lite::StreamExt;
 use opendal::options::ListOptions;
@@ -11,6 +8,9 @@ use std::io;
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
+use crate::fs::{FilterOptions, Metadata};
+use crate::remote::data::OpenDALBackend;
+use crate::remote::path_to_str;
 
 ///
 pub struct OpenDALQuery {

@@ -1,9 +1,33 @@
-use bytesize::ByteSize;
+use std::collections::BTreeMap;
 use std::io;
 use std::io::ErrorKind;
 use std::str::FromStr;
+use std::sync::Arc;
+use bytesize::ByteSize;
 use derive_setters::Setters;
 use serde_derive::{Deserialize, Serialize};
+use crate::backend::{DataVfs, VfsConfig};
+use crate::remote::data::OpenDALBackend;
+use crate::remote::services::RemoteSource;
+use crate::operator::DataInner;
+
+/// The config for a remote source.
+#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub struct RemoteConfig {
+    /// The maximum # of open connections.
+    pub max_threads: Option<u8>,
+    /// The [`Throttle`] settings.
+    pub bandwidth: Option<Throttle>,
+    /// The [`RemoteSource`] to use.
+    pub src: RemoteSource,
+}
+
+impl VfsConfig for RemoteConfig {
+    fn to_backend(self) -> io::Result<Arc<DataInner>> {
+        let dal = OpenDALBackend::new(self)?;
+        Ok(Arc::new(dal.to_inner()))
+    }
+}
 
 /// Throttling parameters
 ///
