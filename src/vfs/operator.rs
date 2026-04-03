@@ -5,10 +5,10 @@ use crate::backend::{
 use crate::local::config::LocalConfig;
 use crate::local::data::LocalBackend;
 
-use crate::ExtMetadata;
 use crate::opendal::config::RemoteConfig;
 use crate::opendal::data::OpenDALBackend;
 use crate::{DataConfig, DataQuery};
+use crate::{DataFile, Metadata};
 use chrono::{DateTime, Local};
 use delegate::delegate;
 use std::io;
@@ -16,15 +16,33 @@ use std::io::ErrorKind;
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Debug)]
+/// Represents the core [`DataVfs`] based on capabilities. This is designed
+/// to wrap an [`Operator`] or [`DataFile`] to reduce repetition.
 pub(crate) struct DataInner {
+    /// The ID to use for equality comparisons.
+    pub id: Uuid,
+    /// The [`VfsReader`] system if applicable.
     pub reader: Option<Arc<dyn VfsReader>>,
+    /// The [`VfsWriter`] system if applicable.
     pub writer: Option<Arc<dyn VfsWriter>>,
+    /// The [`VfsFull`] system if applicable.
     pub full: Option<Arc<dyn VfsFull>>,
 }
 
+impl PartialEq<Self> for DataInner {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for DataInner {}
+
 impl DataInner {
+    /// # Returns
+    /// A [`VfsReader`] instance, or [`ErrorKind::Unsupported`].
     fn reader(&self) -> io::Result<&dyn VfsReader> {
         let ret = self
             .reader
@@ -33,6 +51,8 @@ impl DataInner {
             .deref();
         Ok(ret)
     }
+    /// # Returns
+    /// A [`VfsWriter`] instance, or [`ErrorKind::Unsupported`].
     fn writer(&self) -> io::Result<&dyn VfsWriter> {
         let ret = self
             .writer
@@ -41,6 +61,8 @@ impl DataInner {
             .deref();
         Ok(ret)
     }
+    /// # Returns
+    /// A [`VfsFull`] instance, or [`ErrorKind::Unsupported`].
     fn full(&self) -> io::Result<&dyn VfsFull> {
         let ret = self
             .full
@@ -61,7 +83,7 @@ impl DataInner {
     pub async fn open_full(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn DataFull>> {
         self.full()?.open_full(item.as_ref()).await
     }
-    pub async fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<ExtMetadata>> {
+    pub async fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<Metadata>> {
         self.reader()?.get_metadata(item.as_ref()).await
     }
     pub async fn remove_dir(&self, dirname: impl AsRef<Path>) -> io::Result<()> {
@@ -102,11 +124,12 @@ impl DataInner {
 }
 
 #[derive(Clone, Debug)]
-pub struct DataOperator {
+pub struct Operator {
     pub(crate) be: Arc<DataInner>,
 }
 
-impl DataOperator {
+impl Operator {
+    /// Creates a new [`Operator`] with
     pub fn local(config: LocalConfig) -> std::io::Result<Self> {
         Self::new(DataConfig::Local(config))
     }
@@ -122,7 +145,36 @@ impl DataOperator {
     }
 }
 
-impl DataOperator {
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum FileAction {
+    /// The [`DataFile`] did not exist on the system.
+    Created(DataFile),
+    /// The [`DataFile`] existed on the system.
+    Found(DataFile),
+}
+
+impl Deref for FileAction {
+    type Target = DataFile;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            FileAction::Created(x) => x,
+            FileAction::Found(x) => x,
+        }
+    }
+}
+
+impl FileAction {
+    /// Retrieves the [`DataFile`]
+    pub fn into_file(self) -> DataFile {
+        match self {
+            FileAction::Created(x) => x,
+            FileAction::Found(x) => x,
+        }
+    }
+}
+
+impl Operator {
     pub async fn list(
         &self,
         item: impl AsRef<Path>,
@@ -137,9 +189,33 @@ impl DataOperator {
             .await?;
         Ok(DataQuery::new(self.be.clone(), query))
     }
+
+    /// Returns an existing [`DataFile`], or an [`ErrorKind::NotFound`] if not detected.
+    pub async fn get_existing(&self, item: impl AsRef<Path>) -> io::Result<DataFile> {
+        let meta = self.stat(item).await?.ok_or(io::ErrorKind::NotFound)?;
+        let ret = DataFile::new(meta, self.be.clone());
+        Ok(ret)
+    }
+
+    /// Attempts to retrieve a [`DataFile`], creating if not existing.
+    pub async fn ensure_file(&self, item: impl AsRef<Path>) -> io::Result<FileAction> {
+        let path = item.as_ref();
+        match self.stat(path).await? {
+            None => {
+                self.set_length(path, 0).await?;
+                let file = self.get_existing(path).await?;
+                Ok(FileAction::Created(file))
+            }
+            Some(x) => {
+                let file = self.get_existing(path).await?;
+                Ok(FileAction::Found(file))
+            }
+        }
+    }
+
     delegate! {
         to self.be {
-            pub async fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<ExtMetadata>>;
+            pub async fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<Metadata>>;
             pub async fn open_read(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn DataRead>>;
             pub async fn open_full(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn DataFull>>;
             pub async fn remove_dir(&self, dirname: impl AsRef<Path>) -> io::Result<()>;

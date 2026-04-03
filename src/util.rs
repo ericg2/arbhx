@@ -6,7 +6,7 @@ use ignore::Match;
 use std::io;
 use std::io::ErrorKind;
 use std::path::PathBuf;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{FilterOptions, Metadata};
 
 /// Represents a **stateful** sorting for a [`DataQuery`]
 pub struct SimpleIgnore {
@@ -52,7 +52,7 @@ impl SimpleIgnore {
 }
 
 impl DataIgnore for SimpleIgnore {
-    fn filter_ok(&self, meta: &ExtMetadata) -> std::io::Result<bool> {
+    fn filter_ok(&self, meta: &Metadata) -> std::io::Result<bool> {
         let path = &meta.path;
 
         // 1️⃣ Check override patterns

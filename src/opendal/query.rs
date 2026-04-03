@@ -2,7 +2,7 @@ use crate::backend::{DataIgnore, MetaStream, SizedQuery};
 use crate::opendal::data::OpenDALBackend;
 use crate::opendal::path_to_str;
 use crate::util::SimpleIgnore;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{Metadata, FilterOptions};
 use async_trait::async_trait;
 use futures_lite::StreamExt;
 use opendal::options::ListOptions;
@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 
+///
 pub struct OpenDALQuery {
     pub(crate) operator: Operator,
     pub(crate) path: String,
@@ -40,12 +41,12 @@ impl OpenDALQuery {
         })
     }
 
-    fn get_meta(entry: Entry) -> ExtMetadata {
+    fn get_meta(entry: Entry) -> Metadata {
         let path = PathBuf::from(entry.path());
         OpenDALBackend::meta(&path, entry.metadata())
     }
 
-    fn get_entry(&self, res: Result<Entry, opendal::Error>) -> io::Result<Option<ExtMetadata>> {
+    fn get_entry(&self, res: Result<Entry, opendal::Error>) -> io::Result<Option<Metadata>> {
         let meta = Self::get_meta(res?);
         if !self.root && path_to_str(&meta.path, meta.is_dir) == self.path {
             return Ok(None); // *** 3-28-26: don't include the root unless asking for it.

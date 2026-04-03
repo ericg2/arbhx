@@ -1,7 +1,7 @@
 use crate::backend::{MetaStream, SizedQuery};
 use crate::blocking::FileIterator;
 use crate::vfs::{DataInner, FileStream};
-use crate::{DataFile, ExtMetadata};
+use crate::{DataFile, Metadata};
 use futures_lite::{Stream, StreamExt};
 use std::io;
 use std::pin::Pin;

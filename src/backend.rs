@@ -9,7 +9,7 @@ use bytes::Bytes;
 use futures_lite::Stream;
 use tokio::io::{AsyncRead, AsyncSeek, AsyncWrite};
 use uuid::Uuid;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{FilterOptions, Metadata};
 
 #[async_trait]
 pub trait DataRead: AsyncRead + AsyncSeek + Send + Sync + Unpin + 'static {}
@@ -47,7 +47,7 @@ pub trait VfsReader: Send + Sync + 'static + Debug + Unpin {
     ///
     /// # Errors
     /// Returns an error if metadata cannot be retrieved.
-    async fn get_metadata(&self, item: &Path) -> io::Result<Option<ExtMetadata>>;
+    async fn get_metadata(&self, item: &Path) -> io::Result<Option<Metadata>>;
 
     /// List directory contents.
     ///
@@ -72,7 +72,8 @@ pub trait SizedQuery: Send + Sync {
 
     async fn stream(self: Arc<Self>) -> io::Result<Pin<Box<MetaStream>>>;
 }
-pub type MetaStream = dyn Stream<Item=io::Result<ExtMetadata>> + Send;
+
+pub type MetaStream = dyn Stream<Item=io::Result<Metadata>> + Send;
 
 pub trait DataVfs {
     /// Retrieves the ID for the [`VfsReader`]. Useful for cross-FS.
@@ -153,7 +154,7 @@ pub trait VfsFull: VfsReader + VfsWriter + Send + Sync + 'static + Debug + Unpin
 
 pub trait DataIgnore {
     /// Checks if a filter is correct.
-    fn filter_ok(&self, meta: &ExtMetadata) -> io::Result<bool>;
+    fn filter_ok(&self, meta: &Metadata) -> io::Result<bool>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

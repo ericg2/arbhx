@@ -17,7 +17,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::SystemTime;
 use uuid::Uuid;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{FilterOptions};
 use crate::vfs::DataInner;
 
 /// `OpenDALBackend` contains a wrapper around an [`Operator`] of the `OpenDAL` library.
@@ -29,7 +29,14 @@ pub struct OpenDALBackend {
 }
 
 impl OpenDALBackend {
-    pub fn new(config: RemoteConfig) -> std::io::Result<Self> {
+    /// Creates a new [`OpenDALBackend`] with the specified config.
+    /// 
+    /// # Arguments
+    /// `config` - The [`RemoteConfig`] to use.
+    /// 
+    /// # Errors
+    /// If the OpenDAL system fails to initialize.
+    pub fn new(config: RemoteConfig) -> io::Result<Self> {
         let mut operator = Operator::via_iter(config.src.scheme(), config.src.clone().to_map())
             .map_err(|x| io::Error::from(x))?; // *** map to IO error to not expose opendal.
         if let Some(x) = config.bandwidth {
@@ -46,28 +53,44 @@ impl OpenDALBackend {
         })
     }
 
-    pub(crate) fn meta(path: &Path, meta: &Metadata) -> ExtMetadata {
-        ExtMetadata {
+    /// Converts an [`opendal::types::Metadata`] into a valid [`crate::Metadata`] instance.
+    /// 
+    /// # Arguments
+    /// * `path` - The [`Path`] to represent.
+    /// * `meta` - The [`Metadata`] to convert.
+    /// 
+    /// # Returns
+    /// A valid [`crate::Metadata`] for use with operations.
+    pub(crate) fn meta(path: &Path, meta: &Metadata) -> crate::Metadata {
+        crate::Metadata {
             path: path.to_path_buf(),
             is_dir: meta.is_dir(),
             mtime: meta
                 .last_modified()
                 .map(SystemTime::from)
-                .map(DateTime::<Utc>::from)
-                .map(|x| x.with_timezone(&Local)),
+                .map(DateTime::<Utc>::from),
+            atime: None,
+            ctime: None,
             size: meta.content_length(),
-            can_write: true,
-            ..Default::default()
         }
     }
 
-    pub(crate) fn meta_str(path: &str, meta: &Metadata) -> io::Result<ExtMetadata> {
+    /// Converts an [`opendal::types::Metadata`] into a valid [`crate::Metadata`] instance.
+    ///
+    /// # Arguments
+    /// * `path` - The OpenDAL path to represent.
+    /// * `meta` - The [`Metadata`] to convert.
+    ///
+    /// # Returns
+    /// A valid [`crate::Metadata`] for use with operations.
+    pub(crate) fn meta_str(path: &str, meta: &Metadata) -> io::Result<crate::Metadata> {
         let path =
             PathBuf::from_str(path).map_err(|e| io::Error::new(ErrorKind::InvalidInput, e))?;
         Ok(Self::meta(&path, meta))
     }
 
-    pub(crate) fn meta_entry(entry: opendal::Entry) -> io::Result<ExtMetadata> {
+    /// Converts an [`opendal::Entry`] into a valid [`crate::Metadata`] instance.
+    pub(crate) fn meta_entry(entry: opendal::Entry) -> io::Result<crate::Metadata> {
         Self::meta_str(entry.path(), entry.metadata())
     }
 }
@@ -78,8 +101,10 @@ impl DataVfs for OpenDALBackend {
     }
 
     fn to_inner(self) -> DataInner {
+        let id = self.id;
         let ret = Arc::new(self);
         DataInner {
+            id,
             reader: Some(ret.clone()),
             writer: Some(ret.clone()),
             full: None,
@@ -102,7 +127,7 @@ impl VfsReader for OpenDALBackend {
         Ok(Box::new(ret))
     }
 
-    async fn get_metadata(&self, item: &Path) -> io::Result<Option<ExtMetadata>> {
+    async fn get_metadata(&self, item: &Path) -> io::Result<Option<crate::Metadata>> {
         let path = path_to_str(item, false);
         if !self.operator.exists(&path).await? {
             return Ok(None);

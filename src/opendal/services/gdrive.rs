@@ -3,11 +3,17 @@ use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
+/// Represents a G-Drive config. All fields are required.
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Debug)]
 pub struct GDriveConfig {
+    /// The starting path to treat as `root` (`/`). No data will
+    /// be visible outside of this directory, similar to an OpenSSH jail.
     pub root: String,
+    /// The OAuth2 Refresh Token for the API.
     pub refresh_token: String,
+    /// The OAuth2 Client ID for the API.
     pub client_id: String,
+    /// The OAuth2 Client Secret for the API.
     pub client_secret: String,
 }
 

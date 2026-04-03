@@ -3,13 +3,21 @@ use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
+/// Represents an Amazon S3 server config. All fields are required.
 #[derive(Clone, Serialize, Deserialize, Eq, Hash, PartialEq, Debug)]
 pub struct S3Config {
+    /// The starting path to treat as `root` (`/`). No data will
+    /// be visible outside of this directory, similar to an OpenSSH jail.
     pub root: String,
+    /// The bucket to use for the server.
     pub bucket: String,
+    /// The endpoint to use for the server.
     pub endpoint: String,
+    /// The region to use for the server.
     pub region: String,
+    /// The access key ID for the server.
     pub access_key_id: String,
+    /// The access key for the server.
     pub secret_access_key: String,
 }
 

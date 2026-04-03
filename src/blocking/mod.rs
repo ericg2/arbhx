@@ -9,7 +9,7 @@ mod query;
 mod file;
 
 pub use {
-    operator::DataOperator,
+    operator::Operator,
     query::DataQuery,
     file::DataFile
 };

@@ -1,3 +1,12 @@
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::must_use_candidate)]
+
 use std::path::{Component, Path, PathBuf};
 
 pub(crate) mod backend;

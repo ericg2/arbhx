@@ -4,9 +4,9 @@ mod operator;
 mod query;
 
 pub use {
-    file::{DataFile, ExtMetadata},
+    file::{DataFile, Metadata},
     filters::FilterOptions,
-    operator::{DataOperator},
+    operator::{Operator},
     query::DataQuery,
 };
 

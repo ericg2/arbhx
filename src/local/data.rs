@@ -15,7 +15,7 @@ use std::sync::Arc;
 use sysinfo::Disks;
 use tokio::fs;
 use uuid::Uuid;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{Metadata, FilterOptions};
 use crate::vfs::DataInner;
 
 #[derive(Debug)]
@@ -49,20 +49,18 @@ impl LocalBackend {
         }
     }
 
-    async fn raw_metadata(&self, path: &Path) -> std::io::Result<Option<ExtMetadata>> {
+    async fn raw_metadata(&self, path: &Path) -> std::io::Result<Option<Metadata>> {
         if !fs::try_exists(&path).await? {
             return Ok(None);
         }
         let meta = fs::metadata(&path).await?;
-        let x_meta = ExtMetadata {
+        let x_meta = Metadata {
             path: Self::get_relative(&self.path, &path),
             is_dir: meta.is_dir(),
             mtime: meta.modified().ok().map(|x| x.into()),
             atime: meta.accessed().ok().map(|x| x.into()),
             ctime: meta.created().ok().map(|x| x.into()),
             size: meta.len(),
-            can_write: true,
-            ..Default::default()
         };
         Ok(Some(x_meta))
     }
@@ -74,8 +72,10 @@ impl DataVfs for LocalBackend {
     }
 
     fn to_inner(self) -> DataInner {
+        let id = self.id;
         let ret = Arc::new(self);
         DataInner {
+            id,
             reader: Some(ret.clone()),
             writer: Some(ret.clone()),
             full: Some(ret.clone()),
@@ -111,7 +111,7 @@ impl VfsReader for LocalBackend {
         LocalReader::read_file(self.join_force(item)).await
     }
 
-    async fn get_metadata(&self, item: &Path) -> std::io::Result<Option<ExtMetadata>> {
+    async fn get_metadata(&self, item: &Path) -> std::io::Result<Option<Metadata>> {
         let path = self.join_force(item);
         self.raw_metadata(&path).await
     }

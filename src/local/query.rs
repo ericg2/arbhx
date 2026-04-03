@@ -7,7 +7,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
-use crate::{ExtMetadata, FilterOptions};
+use crate::{FilterOptions, Metadata};
 
 pub struct LocalQuery {
     pub(crate) abs: PathBuf,
@@ -43,14 +43,13 @@ impl LocalQuery {
         let Some(meta) = entry.metadata().await.ok() else {
             return Filtering::Ignore;
         };
-        let ext = ExtMetadata {
+        let ext = Metadata {
             path: entry.path(),
             is_dir: meta.is_dir(),
             mtime: meta.modified().ok().map(|x| x.into()),
             atime: meta.accessed().ok().map(|x| x.into()),
             ctime: meta.created().ok().map(|x| x.into()),
             size: meta.len(),
-            ..Default::default()
         };
         if !self.root && entry.path() == self.path {
             return Filtering::Ignore; // *** just ignore the single element!
@@ -76,17 +75,16 @@ impl LocalQuery {
     async fn map_entry(
         abs: PathBuf,
         entry: async_walkdir::Result<DirEntry>,
-    ) -> io::Result<ExtMetadata> {
+    ) -> io::Result<Metadata> {
         let entry = entry?;
         let meta = entry.metadata().await?;
-        Ok(ExtMetadata {
+        Ok(Metadata {
             path: entry.path(),
             is_dir: meta.is_dir(),
             mtime: meta.modified().ok().map(|x| x.into()),
             atime: meta.accessed().ok().map(|x| x.into()),
             ctime: meta.created().ok().map(|x| x.into()),
             size: meta.len(),
-            ..Default::default()
         })
     }
 

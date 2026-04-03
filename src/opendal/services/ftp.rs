@@ -3,11 +3,17 @@ use opendal::Scheme;
 use serde_derive::{Deserialize, Serialize};
 use crate::opendal::services::RemoteConfig;
 
+/// Represents an FTP server config. All fields are required.
 #[derive(Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Debug)]
 pub struct FtpConfig {
+    /// The IP address of the server. Example: `192.168.1.149:21`
     pub endpoint: String,
+    /// The starting path to treat as `root` (`/`). No data will
+    /// be visible outside of this directory, similar to an OpenSSH jail.
     pub root: String,
+    /// The username to the FTP server.
     pub username: String,
+    /// The password to the FTP server.
     pub password: String,
 }
 
