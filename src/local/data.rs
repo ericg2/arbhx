@@ -1,13 +1,16 @@
 use crate::backend::{
     DataAppend, DataFull, DataRead, DataVfs, SizedQuery, UsageStat, VfsFull, VfsReader, VfsWriter,
 };
+use crate::fs::{FilterOptions, Metadata};
 use crate::local::config::LocalConfig;
 use crate::local::query::LocalQuery;
 use crate::local::reader::LocalReader;
 use crate::local::writer::LocalWriter;
+use crate::operator::{DataInner, DataMode};
 use async_trait::async_trait;
+use bytesize::ByteSize;
 use chrono::{DateTime, Local};
-use filetime::{set_symlink_file_times, FileTime};
+use filetime::{FileTime, set_symlink_file_times};
 use std::fmt::Debug;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -15,8 +18,6 @@ use std::sync::Arc;
 use sysinfo::Disks;
 use tokio::fs;
 use uuid::Uuid;
-use crate::fs::{FilterOptions, Metadata};
-use crate::operator::{DataInner, DataMode};
 
 #[derive(Debug, Clone)]
 pub struct LocalBackend {
@@ -98,12 +99,13 @@ impl VfsReader for LocalBackend {
             .iter()
             .find(|x| self.path.starts_with(x.mount_point()))
             .map(|disk| {
-                let max_bytes = disk.total_space(); // total bytes
-                let free_bytes = disk.available_space(); // free bytes
+                let max_bytes = ByteSize(disk.total_space()); // total bytes
+                let free_bytes = ByteSize(disk.available_space()); // free bytes
                 let used_bytes = max_bytes - free_bytes;
                 UsageStat {
-                    used_bytes,
                     max_bytes,
+                    used_bytes,
+                    free_bytes,
                 }
             })
             .ok_or(ErrorKind::Unsupported.into());

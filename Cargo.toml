@@ -1,6 +1,6 @@
 [package]
 name = "arbhx"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A simple VFS layer for Rust."
@@ -25,7 +25,7 @@ serde-aux = "4.7.0"
 serde_derive = "1.0.228"
 serde_with = "3.15.1"
 derive_setters = "0.1.9"
-bytesize = "2.3.1"
+bytesize = { version = "2.3.1", features = ["serde"] }
 ignore = "0.4.25"
 dashmap = "6.1.0"
 sysinfo = "0.38.4"

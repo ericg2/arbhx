@@ -72,7 +72,7 @@ impl DataInner {
         let ret = self
             .writer
             .as_ref()
-            .ok_or_else(|| io::Error::from(ErrorKind::Unsupported))?
+            .ok_or_else(|| io::Error::from(ErrorKind::ReadOnlyFilesystem))?
             .deref();
         Ok(ret)
     }

@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
 use bytes::Bytes;
+use bytesize::ByteSize;
 use futures_lite::Stream;
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
@@ -165,8 +166,13 @@ pub trait DataIgnore {
     fn filter_ok(&self, meta: &Metadata) -> io::Result<bool>;
 }
 
+/// Represents the current usage for a VFS.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct UsageStat {
-    pub used_bytes: u64,
-    pub max_bytes: u64,
+    /// The allocated bytes for the store.
+    pub max_bytes: ByteSize,
+    /// The used bytes for the store.
+    pub used_bytes: ByteSize,
+    /// The free bytes for the store.
+    pub free_bytes: ByteSize
 }
