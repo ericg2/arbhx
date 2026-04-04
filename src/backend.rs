@@ -167,7 +167,7 @@ pub trait DataIgnore {
 }
 
 /// Represents the current usage for a VFS.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct DataUsage {
     /// The allocated bytes for the store.
     pub max_bytes: ByteSize,
