@@ -1,4 +1,4 @@
-use crate::backend::{UsageStat, VfsConfig};
+use crate::backend::{DataUsage, VfsConfig};
 use crate::blocking::full::FullCompat;
 use crate::blocking::reader::ReadCompat;
 use crate::blocking::writer::AppendCompat;
@@ -61,7 +61,7 @@ impl FileAction {
 }
 
 impl Operator {
-    pub fn usage(&self) -> io::Result<Option<UsageStat>> {
+    pub fn usage(&self) -> io::Result<Option<DataUsage>> {
         self.rt.block_on(self.vfs.usage())
     }
     pub fn stat(&self, item: impl AsRef<Path>) -> io::Result<Option<Metadata>> {

@@ -1,5 +1,5 @@
 use crate::backend::{
-    DataAppend, DataFull, DataRead, DataVfs, UsageStat, VfsConfig, VfsFull, VfsReader, VfsWriter,
+    DataAppend, DataFull, DataRead, DataVfs, DataUsage, VfsConfig, VfsFull, VfsReader, VfsWriter,
 };
 use crate::fs::{DataFile, DataQuery, FilterOptions, Metadata};
 use crate::local::LocalConfig;
@@ -89,7 +89,7 @@ impl DataInner {
 }
 
 impl DataInner {
-    pub async fn usage(&self) -> io::Result<Option<UsageStat>> {
+    pub async fn usage(&self) -> io::Result<Option<DataUsage>> {
         self.reader()?.get_usage().await.transpose()
     }
     pub async fn open_read(&self, item: impl AsRef<Path>) -> io::Result<Box<dyn DataRead>> {
@@ -248,7 +248,7 @@ impl Operator {
             pub async fn set_length(&self, item: impl AsRef<Path>, size: u64) -> io::Result<()>;
             pub async fn move_to(&self, old: impl AsRef<Path>, new: impl AsRef<Path>) -> io::Result<()>;
             pub async fn copy_to(&self, old: impl AsRef<Path>, new: impl AsRef<Path>) -> io::Result<()>;
-            pub async fn usage(&self) -> io::Result<Option<UsageStat>>;
+            pub async fn usage(&self) -> io::Result<Option<DataUsage >>;
             pub async fn open_append(
                 &self,
                 item: impl AsRef<Path>,

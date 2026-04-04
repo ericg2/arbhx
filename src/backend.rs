@@ -40,7 +40,7 @@ pub trait VfsReader: Send + Sync + 'static + Debug + Unpin {
     fn realpath(&self, item: &Path) -> PathBuf;
 
     /// Retrieves usage information if applicable.
-    async fn get_usage(&self) -> Option<io::Result<UsageStat>>;
+    async fn get_usage(&self) -> Option<io::Result<DataUsage>>;
 
     /// Reads the path and opens a handle for it.
     async fn open_read(&self, item: &Path) -> io::Result<Box<dyn DataRead>>;
@@ -168,7 +168,7 @@ pub trait DataIgnore {
 
 /// Represents the current usage for a VFS.
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct UsageStat {
+pub struct DataUsage {
     /// The allocated bytes for the store.
     pub max_bytes: ByteSize,
     /// The used bytes for the store.

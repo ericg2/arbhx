@@ -20,7 +20,7 @@ pub mod remote;
 pub mod local;
 pub mod fs;
 
-pub use backend::{DataAppend, DataFull, DataRead};
+pub use backend::{DataAppend, DataFull, DataRead, DataUsage};
 pub use operator::{Operator, DataMode};
 
 pub(crate) fn join_force(base: impl AsRef<Path>, p: impl AsRef<Path>) -> PathBuf {

@@ -1,5 +1,5 @@
 use crate::backend::{
-    DataAppend, DataFull, DataRead, DataVfs, SizedQuery, UsageStat, VfsFull, VfsReader, VfsWriter,
+    DataAppend, DataFull, DataRead, DataVfs, SizedQuery, DataUsage, VfsFull, VfsReader, VfsWriter,
 };
 use crate::fs::{FilterOptions, Metadata};
 use crate::local::config::LocalConfig;
@@ -93,7 +93,7 @@ impl VfsReader for LocalBackend {
         self.join_force(item)
     }
 
-    async fn get_usage(&self) -> Option<std::io::Result<UsageStat>> {
+    async fn get_usage(&self) -> Option<std::io::Result<DataUsage>> {
         let disks = Disks::new_with_refreshed_list();
         let ret = disks
             .iter()
@@ -102,7 +102,7 @@ impl VfsReader for LocalBackend {
                 let max_bytes = ByteSize(disk.total_space()); // total bytes
                 let free_bytes = ByteSize(disk.available_space()); // free bytes
                 let used_bytes = max_bytes - free_bytes;
-                UsageStat {
+                DataUsage {
                     max_bytes,
                     used_bytes,
                     free_bytes,

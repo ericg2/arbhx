@@ -1,5 +1,5 @@
 use crate::backend::{
-    DataAppend, DataRead, DataVfs, SizedQuery, UsageStat, VfsReader, VfsWriter,
+    DataAppend, DataRead, DataVfs, SizedQuery, DataUsage, VfsReader, VfsWriter,
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Local, Utc};
@@ -118,7 +118,7 @@ impl VfsReader for OpenDALBackend {
         item.to_path_buf() // *** already in full absolute form.
     }
 
-    async fn get_usage(&self) -> Option<io::Result<UsageStat>> {
+    async fn get_usage(&self) -> Option<io::Result<DataUsage>> {
         None
     }
 
