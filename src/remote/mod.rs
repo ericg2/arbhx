@@ -5,9 +5,9 @@ mod throttle;
 mod reader;
 mod writer;
 mod query;
-mod services;
 mod config;
 
+pub mod services;
 pub use config::{RemoteConfig, Throttle};
 
 /// Converts a [`Path`] into an OpenDAL-supported [`String`].
